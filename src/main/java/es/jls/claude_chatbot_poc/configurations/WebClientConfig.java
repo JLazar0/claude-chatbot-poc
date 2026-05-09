@@ -1,5 +1,7 @@
 package es.jls.claude_chatbot_poc.configurations;
 
+import es.jls.claude_chatbot_poc.utils.Constants;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -14,6 +16,15 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Configuration
 public class WebClientConfig {
 
+    @Value("${anthropic.base-url}")
+    private String baseUrl;
+
+    @Value("${anthropic.api-key}")
+    private String apiKey;
+
+    @Value("${anthropic.version}")
+    private String anthropicVersion;
+
     /**
      * Inicializamos el cliente web para anthropic con variable de entorno.
      * @param builder Builder para la inicializacion
@@ -23,9 +34,9 @@ public class WebClientConfig {
     public WebClient anthropicWebClient(WebClient.Builder builder) {
 
         return builder
-                .baseUrl("https://api.anthropic.com")
-                .defaultHeader("x-api-key", System.getenv("ANTHROPIC_API_KEY"))
-                .defaultHeader("anthropic-version", "2023-06-01")
+                .baseUrl(baseUrl)
+                .defaultHeader("x-api-key", apiKey)
+                .defaultHeader("anthropic-version", anthropicVersion)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }

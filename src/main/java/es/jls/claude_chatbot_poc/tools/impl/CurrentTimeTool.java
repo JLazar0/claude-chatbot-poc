@@ -7,6 +7,11 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 
+/**
+ * Herramienta de prueba que devuelve la hora del sistema
+ *
+ * @author JLazar0
+ */
 @Component
 public class CurrentTimeTool implements ToolHandler {
 

@@ -10,6 +10,12 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Servicio que ejecutara las diferentes herramientas
+ * que proveemos a Claude
+ *
+ * @author JLazar0
+ */
 @Service
 public class ToolService {
     private final Map<String, ToolHandler> handlers;

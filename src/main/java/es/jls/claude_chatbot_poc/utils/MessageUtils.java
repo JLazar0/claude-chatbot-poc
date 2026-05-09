@@ -1,11 +1,38 @@
 package es.jls.claude_chatbot_poc.utils;
 
+import es.jls.claude_chatbot_poc.dtos.Message;
 import es.jls.claude_chatbot_poc.events.ToolUseEvent;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Clase de utilidades para convertir a bodys que Claude
+ * sea capaz de leer
+ *
+ * @author JLazar0
+ */
 public class MessageUtils {
+
+
+    /**
+     * Método para obtener el cuerpo de mensaje necesario para enviar
+     * mensajes a claude
+     * @param messageContext contexto de mensajes
+     * @param tools herramientas disponibles
+     * @return body a enviar a la api de messages
+     */
+    public static Map<String, Object> getBodySendMessages(List<Map<String, Object>> messageContext, List<Map<String, Object>> tools) {
+        Map<String, Object> body = Map.of(
+                "model", "claude-haiku-4-5",
+                "max_tokens", 1024,
+                "stream", true,
+                "messages", messageContext,
+                "tools", tools
+        );
+        return body;
+    }
 
     /**
      * Formateamos el mensaje de respuesta a Claude de una tool, indicamos que es role user
@@ -16,7 +43,7 @@ public class MessageUtils {
      */
     public static Map<String, Object> getToolResult(String toolId, String result){
         return Map.of(
-                "role", "user",
+                "role", Constants.ROLE_ANTHROPIC_USER,
                 "content", List.of(
                         Map.of(
                                 "type", "tool_result",
@@ -53,6 +80,44 @@ public class MessageUtils {
                 "type", "tool_result",
                 "tool_use_id", toolEvent.toolId(),
                 "content", toolResult
+        );
+    }
+
+    /**
+     * Método para construir el contexto con mensaje actual del usuario
+     * y anteriores de usuario y agente
+     *
+     * @param history listado de mensajes anteriores
+     * @return listado de mensajes k-> user|agent v-> mensaje
+     */
+    public static List<Map<String, Object>> getMessagesWithContext(List<Message> history) {
+        // Construimos los mensajes anteriores del historial
+        List<Map<String, Object>> messages = new ArrayList<>();
+        for (Message m : history) {
+            messages.add(Map.of(
+                    "role", m.role(),
+                    "content", m.content()
+            ));
+        }
+
+        return messages;
+    }
+
+    /**
+     * Método para definir herramientas que el agente puede usar
+     *
+     * @return Listado de herramientas
+     */
+    public static List<Map<String, Object>> getTools() {
+        return List.of(Map.of(
+                        "name", "get_current_time",
+                        "description", "Devuelve la hora actual del sistema",
+                        "input_schema", Map.of(
+                                "type", "object",
+                                "properties", Map.of(),
+                                "required", List.of()
+                        )
+                )
         );
     }
 }

@@ -7,6 +7,7 @@ import es.jls.claude_chatbot_poc.events.ClaudeEvent;
 import es.jls.claude_chatbot_poc.events.ErrorEvent;
 import es.jls.claude_chatbot_poc.events.TextEvent;
 import es.jls.claude_chatbot_poc.events.ToolUseEvent;
+import es.jls.claude_chatbot_poc.utils.MessageUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -29,20 +30,15 @@ public class ClaudeService {
 
     public Flux<ClaudeEvent> stream(List<Message> history) {
 
-        Map<String, Object> body = Map.of(
-                "model", "claude-haiku-4-5",
-                "max_tokens", 1024,
-                "stream", true,
-                "messages", getMessagesWithContext(history),
-                "tools", getTools()
-        );
+        final List<Map<String, Object>> messageContext = MessageUtils.getMessagesWithContext(history);
+        final List<Map<String, Object>> tools = MessageUtils.getTools();
+        final Map<String, Object> body = MessageUtils.getBodySendMessages(messageContext, tools);
 
         return anthropicWebClient.post()
                 .uri("/v1/messages")
                 .bodyValue(body)
                 .retrieve()
                 .bodyToFlux(String.class)
-                .doOnNext(System.out::println)
                 .map(line -> line.trim())
                 .filter(line -> !line.equals("[DONE]"))
                 .filter(s -> !s.isBlank())
@@ -60,7 +56,7 @@ public class ClaudeService {
             JsonNode node = objectMapper.readTree(json);
             String type = node.path("type").asText();
 
-            // TEXTO STREAMING
+            // delta -> Streaming de texto
             if ("content_block_delta".equals(type)) {
                 JsonNode delta = node.path("delta");
                 if ("text_delta".equals(delta.path("type").asText())) {
@@ -73,7 +69,7 @@ public class ClaudeService {
                 }
             }
 
-            // TOOL USE
+            // content_block_start -> Uso de herramienta (más adelante puede variar)
             if ("content_block_start".equals(type)) {
                 JsonNode block = node.path("content_block");
                 if ("tool_use".equals(block.path("type").asText())) {
@@ -91,74 +87,4 @@ public class ClaudeService {
             return Mono.empty();
         }
     }
-
-    public Flux<ClaudeEvent> continueConversation(
-            List<Message> history
-    ) {
-
-        List<Map<String, Object>> messages =
-                history.stream()
-
-                        .map(m -> Map.of(
-                                "role", m.role(),
-                                "content", m.content()
-                        ))
-
-                        .toList();
-
-        Map<String, Object> body = Map.of(
-                "model", "claude-haiku-4-5",
-                "stream", true,
-                "max_tokens", 1024,
-                "messages", messages,
-                "tools", getTools()
-        );
-
-        return anthropicWebClient.post()
-                .uri("/v1/messages")
-                .bodyValue(body)
-                .retrieve()
-                .bodyToFlux(String.class)
-                .flatMap(this::parseEvent);
-    }
-
-    /**
-     * Método para construir el contexto con mensaje actual del usuario
-     * y anteriores de usuario y agente
-     *
-     * @param history listado de mensajes anteriores
-     * @return listado de mensajes k-> user|agent v-> mensaje
-     */
-    private List<Map<String, Object>> getMessagesWithContext(List<Message> history) {
-        // Construimos los mensajes anteriores del historial
-        List<Map<String, Object>> messages = new ArrayList<>();
-        for (Message m : history) {
-            messages.add(Map.of(
-                    "role", m.role(),
-                    "content", m.content()
-            ));
-        }
-
-        return messages;
-    }
-
-    /**
-     * Método para definir herramientas que el agente puede usar
-     *
-     * @return Listado de herramientas
-     */
-    private List<Map<String, Object>> getTools() {
-        return List.of(Map.of(
-                        "name", "get_current_time",
-                        "description", "Devuelve la hora actual del sistema",
-                        "input_schema", Map.of(
-                                "type", "object",
-                                "properties", Map.of(),
-                                "required", List.of()
-                        )
-                )
-        );
-    }
-
-
 }

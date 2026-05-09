@@ -4,3 +4,8 @@ server:
 spring:
   application:
     name: claude-chatbot-poc
+
+anthropic:
+  base-url: https://api.anthropic.com
+  api-key: ${ANTHROPIC_API_KEY}
+  version: 2023-06-01

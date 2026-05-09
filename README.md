@@ -3,6 +3,8 @@ Prueba de concepto para crear un chatbot con CLAUDE
 
 ## Requisitos
  * JDK 21
+ * Claude
+ * Render [Opcional]
 
 
 
@@ -29,6 +31,10 @@ y ser más sencillo para este POC.
 implementaran todas las tools, lo que permite inyectarlo como Lista de tools en el propio servicio.
  * Como el uso de erramientas implica una conversación continua, cambio el envio de mensajes para que en
 el caso de ser Tools sea recursivo.
+ * Registro en render para despliegue en contenedor docker
+   * Plan hobby -> free
+   * Conexion directa con cuenta de github
+   * uso de dockerfile de temurin
 
 
 ## Pruebas
@@ -48,3 +54,4 @@ Se provee un powershell para ejecutar, llamadas de ejemplo por ejemplo:
    * 0.09US, 6h aprox.
    * Total de tokens de entrada 24.271
    * Total de tokens de salida 12.790
+ * Tercera jornada, despliegue de micro en render.
