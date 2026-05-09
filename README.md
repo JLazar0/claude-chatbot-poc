@@ -54,4 +54,7 @@ Se provee un powershell para ejecutar, llamadas de ejemplo por ejemplo:
    * 0.09US, 6h aprox.
    * Total de tokens de entrada 24.271
    * Total de tokens de salida 12.790
- * Tercera jornada, despliegue de micro en render.
+ * Tercera jornada, despliegue de micro en render y seguir ajustando el buffering.
+   * 0.13US, 8h
+   * Total de tokens de entrada 44.279
+   * Total de tokens de salida 16.750
