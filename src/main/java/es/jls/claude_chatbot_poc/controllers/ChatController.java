@@ -32,7 +32,7 @@ public class ChatController {
     public Flux<String> stream(@RequestBody ChatRequest request) {
         return chatService.chat(request)
                 .flatMap(claudeEventMapper::toSseText)
-                .bufferTimeout(20, Duration.ofMillis(60))
+                .bufferTimeout(50, Duration.ofMillis(120))
                 .map(list -> String.join("", list))
                 .filter(s -> !s.isBlank());
     }
