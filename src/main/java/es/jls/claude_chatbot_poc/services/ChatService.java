@@ -41,6 +41,10 @@ public class ChatService {
                 .concatMap(event -> {
                     //Texto
                     if (event instanceof TextEvent textEvent) {
+                        memoryService.add(
+                                sessionId,
+                                new Message(Constants.ROLE_ANTHROPIC_ASSISTANT, textEvent.text())
+                        );
                         return Flux.just(textEvent);
                     }
                     //Tools
