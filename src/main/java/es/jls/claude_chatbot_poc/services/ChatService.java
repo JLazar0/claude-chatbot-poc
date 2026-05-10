@@ -36,7 +36,7 @@ public class ChatService {
     }
 
     private Flux<ClaudeEvent> streamTurn( String sessionId,List<Message> history) {
-
+        //Con el concat map aseguramos el orden de los mensajes y la congruencia
         return claudeService.stream(history)
                 .concatMap(event -> {
                     //Texto
@@ -51,12 +51,12 @@ public class ChatService {
                     if (event instanceof ToolUseEvent toolEvent) {
                         return toolService.execute(toolEvent)
                                 .flatMapMany(toolResult -> {
-                                    // guardar contexto
+                                    // guardar contexto -> Claude decide usar una tool
                                     memoryService.add(
                                             sessionId,
                                             new Message(Constants.ROLE_ANTHROPIC_ASSISTANT, List.of(MessageUtils.getMessageToolUse(toolEvent)))
                                     );
-
+                                    // guardar contexto -> Respuesta del uso de la tool, como user ya que es entrada para claude
                                     memoryService.add(
                                             sessionId,
                                             new Message(Constants.ROLE_ANTHROPIC_USER,List.of(MessageUtils.getMessageToolResult(toolEvent, toolResult)))
@@ -64,6 +64,7 @@ public class ChatService {
 
                                     List<Message> updated = memoryService.getHistory(sessionId);
 
+                                    // volvemos a mandar el mensaje a claude con toda la informacion y el respondera
                                     return streamTurn(sessionId, updated);
                                 });
                     }

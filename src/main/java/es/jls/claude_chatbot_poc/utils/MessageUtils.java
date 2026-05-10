@@ -4,6 +4,7 @@ import es.jls.claude_chatbot_poc.dtos.Message;
 import es.jls.claude_chatbot_poc.events.ToolUseEvent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,17 +21,23 @@ public class MessageUtils {
      * Método para obtener el cuerpo de mensaje necesario para enviar
      * mensajes a claude
      * @param messageContext contexto de mensajes
-     * @param tools herramientas disponibles
+     * @param tools herramientas disponibles que se ha decidido usar
      * @return body a enviar a la api de messages
      */
     public static Map<String, Object> getBodySendMessages(List<Map<String, Object>> messageContext, List<Map<String, Object>> tools) {
-        Map<String, Object> body = Map.of(
-                "model", "claude-haiku-4-5",
-                "max_tokens", 1024,
-                "stream", true,
-                "messages", messageContext,
-                "tools", tools
-        );
+        Map<String, Object> body = new HashMap<>();
+
+        body.put("model", "claude-haiku-4-5");
+        body.put("max_tokens", 1024);
+        body.put("cache_control", Map.of("type", "ephemeral"));
+        body.put("stream", true);
+        body.put("messages", messageContext);
+
+        // Si se ha decidido utilizar alguna tool, añadimos
+        if (!tools.isEmpty()) {
+            body.put("tools", tools);
+        }
+
         return body;
     }
 
@@ -101,23 +108,5 @@ public class MessageUtils {
         }
 
         return messages;
-    }
-
-    /**
-     * Método para definir herramientas que el agente puede usar
-     *
-     * @return Listado de herramientas
-     */
-    public static List<Map<String, Object>> getTools() {
-        return List.of(Map.of(
-                        "name", "get_current_time",
-                        "description", "Devuelve la hora actual del sistema",
-                        "input_schema", Map.of(
-                                "type", "object",
-                                "properties", Map.of(),
-                                "required", List.of()
-                        )
-                )
-        );
     }
 }

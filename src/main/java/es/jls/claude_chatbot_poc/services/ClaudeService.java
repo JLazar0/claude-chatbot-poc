@@ -16,7 +16,6 @@ import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -26,12 +25,14 @@ public class ClaudeService {
 
     private final WebClient anthropicWebClient;
 
+    private final ToolSelectorService toolSelectorService;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public Flux<ClaudeEvent> stream(List<Message> history) {
 
         final List<Map<String, Object>> messageContext = MessageUtils.getMessagesWithContext(history);
-        final List<Map<String, Object>> tools = MessageUtils.getTools();
+        final List<Map<String, Object>> tools = toolSelectorService.decideToolsUse(history.getLast().content().toString());
         final Map<String, Object> body = MessageUtils.getBodySendMessages(messageContext, tools);
 
         return anthropicWebClient.post()
